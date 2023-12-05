@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "WavePortal",
-  "sourceName": "contracts/WavePortal.sol",
+  "contractName": "EthEcho",
+  "sourceName": "contracts/EthEcho.sol",
   "abi": [
     {
       "inputs": [],
