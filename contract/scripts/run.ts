@@ -1,12 +1,16 @@
-const hre = require("hardhat");
-const main = async () => {
+//deploy.tsと重複箇所はは定数の頭にAltがついている、使用前に削除すること
+
+//重複のためコメントアウト
+//const hre = require("hardhat");
+const Altmain = async () => {
   const [owner, randomPerson] = await hre.ethers.getSigners();
   const echoContractFactory = await hre.ethers.getContractFactory("EthEcho");
   const echoContract = await echoContractFactory.deploy();
   const ethEcho = await echoContract.waitForDeployment();
 
-  const address = await ethEcho.getAddress();
+  let address = await ethEcho.getAddress();
   console.log("Contract deployed to:", address);
+  address = await owner.getAddress();
   console.log("Contract deployed by:", owner.address);
 
   let echoCount;
@@ -23,7 +27,7 @@ const main = async () => {
   echoCount = await echoContract.getTotalEchoes();
 };
 
-const runMain = async () => {
+const AltrunMain = async () => {
   try {
     await main();
     process.exit(0);

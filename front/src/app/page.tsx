@@ -97,7 +97,7 @@ const Home: React.FC = () => {
                 {/* Echoボックスを実装*/}
                 {currentAccount && (
                   <textarea
-                    placeholder="Echoはこちら"
+                    placeholder="メッセージはこちら"
                     name="echoArea"
                     id="echo"
                     value={echoValue}

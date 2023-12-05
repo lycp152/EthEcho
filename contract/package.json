@@ -6,7 +6,9 @@
   "scripts": {
     "run:script": "npx hardhat run scripts/run.ts",
     "test": "npx hardhat test",
-    "deploy": "npx hardhat run scripts/deploy.js --network sepolia"
+    "deploy": "npx hardhat run scripts/deploy.ts --network sepolia",
+    "deploy:localhost": "npx hardhat run scripts/deploy.ts --network localhost",
+    "start": "npx hardhat node"
   },
   "author": "",
   "license": "ISC",

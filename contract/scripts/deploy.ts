@@ -1,27 +1,28 @@
-import { ethers } from "hardhat";
+const { ethers } = require("ethers");
+const hre = require("hardhat");
+const main = async () => {
+  const [deployer] = await hre.ethers.getSigners();
+  const deployerAddress = await deployer.getAddress();
+  const accountBalance = await deployer.provider.getBalance(deployer.address);
+  const echoContractFactory = await hre.ethers.getContractFactory("EthEcho");
+  const echoContract = await echoContractFactory.deploy();
+  const echoPortal = await echoContract.waitForDeployment();
 
-async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
+  console.log("Deploying contracts with account: ", deployerAddress);
+  console.log("Account balance: ", accountBalance.toString());
+  const echoPortalAddress = await echoPortal.getAddress();
+  console.log("Contract deployed to: ", echoPortalAddress);
+  console.log("Contract deployed by: ", deployerAddress);
+};
 
-  const lockedAmount = ethers.parseEther("0.001");
+const runMain = async () => {
+  try {
+    await main();
+    process.exit(0);
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
+};
 
-  const lock = await ethers.deployContract("Lock", [unlockTime], {
-    value: lockedAmount,
-  });
-
-  await lock.waitForDeployment();
-
-  console.log(
-    `Lock with ${ethers.formatEther(
-      lockedAmount
-    )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.target}`
-  );
-}
-
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+runMain();
