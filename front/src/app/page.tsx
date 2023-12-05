@@ -81,7 +81,7 @@ const Home: React.FC = () => {
   return (
     <div>
       <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+        <div className="sm:mx-auto sm:w-full sm:max-w-lg">
           <h1 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white-900">
             Next.js x Ethers.js DApp
           </h1>
