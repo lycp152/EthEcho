@@ -7,8 +7,91 @@ const Home: React.FC = () => {
   const [currentAccount, setCurrentAccount] = useState<string>("");
   const [echoValue, setEchoValue] = useState<string>("");
   console.log("currentAccount: ", currentAccount);
-  const contractAddress = "0x82F9e3A65eDb2b5C8f76655e3A872B4285169828";
+  const contractAddress = "0xeA02f9dfb233416134D81227E681790BFe197b78";
   const contractABI = abi.abi;
+  const [allEchoes, setAllEchoes] = useState<
+    { address: any; timestamp: Date; message: any }[]
+  >([]);
+
+  const getAllEchoes = async () => {
+    const { ethereum } = window as any;
+
+    try {
+      if (ethereum) {
+        const provider = new ethers.BrowserProvider(ethereum);
+        const signer = provider.getSigner();
+        const EthEchoContract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          await signer
+        );
+        /* コントラクトからgetAllEchoesメソッドを呼び出す */
+        const echoes = await EthEchoContract.getAllEchoes();
+        /* UIに必要なのは、アドレス、タイムスタンプ、メッセージだけなので、以下のように設定 */
+        const echoesCleaned = echoes.map(
+          (sendEcho: { echoSender: any; timestamp: number; message: any }) => {
+            return {
+              address: sendEcho.echoSender,
+              timestamp: new Date(sendEcho.timestamp * 1000),
+              message: sendEcho.message,
+            };
+          }
+        );
+
+        /* React Stateにデータを格納する */
+        setAllEchoes(echoesCleaned);
+      } else {
+        console.log("Ethereum object doesn't exist!");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  /**
+   * `emit`されたイベントに反応する
+   */
+  useEffect(() => {
+    let EthEchoContract: ethers.Contract;
+
+    const onNewEcho = (from: any, timestamp: number, message: any) => {
+      console.log("NewEcho", from, timestamp, message);
+      setAllEchoes((prevState) => [
+        ...prevState,
+        {
+          address: from,
+          timestamp: new Date(timestamp * 1000),
+          message: message,
+        },
+      ]);
+    };
+
+    const setupContract = async () => {
+      /* NewEchoイベントがコントラクトから発信されたときに、情報を受け取ります */
+      if ((window as any).ethereum) {
+        const provider = new ethers.BrowserProvider((window as any).ethereum);
+        const signer = await provider.getSigner();
+
+        EthEchoContract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
+        EthEchoContract.on("New", onNewEcho);
+      }
+    };
+
+    const cleanupContract = () => {
+      /*メモリリークを防ぐために、NewEchoのイベントを解除します*/
+      if (EthEchoContract) {
+        EthEchoContract.off("NewEcho", onNewEcho);
+      }
+    };
+
+    setupContract();
+
+    return cleanupContract;
+  }, [contractABI]);
 
   // window.ethereumにアクセスできることを確認する
   const checkIfWalletIsConnected = async () => {

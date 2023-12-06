@@ -1,5 +1,6 @@
 const { ethers } = require("ethers");
 const hre = require("hardhat");
+
 const main = async () => {
   const [deployer] = await hre.ethers.getSigners();
   const deployerAddress = await deployer.getAddress();

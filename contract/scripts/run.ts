@@ -1,33 +1,34 @@
-//deploy.tsと重複箇所はは定数の頭にAltがついている、使用前に削除すること
+//deploy.tsと重複箇所は関数の頭にaltがついている、使用前に削除すること
 
 //重複のためコメントアウト
 //const hre = require("hardhat");
-const Altmain = async () => {
-  const [owner, randomPerson] = await hre.ethers.getSigners();
+const altmain = async () => {
   const echoContractFactory = await hre.ethers.getContractFactory("EthEcho");
   const echoContract = await echoContractFactory.deploy();
-  const ethEcho = await echoContract.waitForDeployment();
-
-  let address = await ethEcho.getAddress();
-  console.log("Contract deployed to:", address);
-  address = await owner.getAddress();
-  console.log("Contract deployed by:", owner.address);
+  let address = await echoContract.getAddress();
+  console.log("Contract added to:", address);
 
   let echoCount;
   echoCount = await echoContract.getTotalEchoes();
+  console.log(echoCount.toNumber);
 
-  let echoTxn = await echoContract.echoMessage();
-  await echoTxn.wait();
+  /**
+   * Echoを送る
+   */
+  let echoTxn = await echoContract.sendEcho("A message!");
+  await echoTxn.wait(); // トランザクションが承認されるのを待つ（テスト:1回目）
 
-  echoCount = await echoContract.getTotalEchoes();
+  const [_, randomPerson] = await hre.ethers.getSigners();
+  echoTxn = await echoContract
+    .connect(randomPerson)
+    .sendEcho("Another message!");
+  await echoTxn.wait(); // トランザクションが承認されるのを待つ（テスト:2回目）
 
-  echoTxn = await echoContract.connect(randomPerson).echoMessage();
-  await echoTxn.wait();
-
-  echoCount = await echoContract.getTotalEchoes();
+  let allEchoes = await echoContract.getAllEchoes();
+  console.log(allEchoes);
 };
 
-const AltrunMain = async () => {
+const altrunMain = async () => {
   try {
     await main();
     process.exit(0);
