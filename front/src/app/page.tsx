@@ -1,15 +1,38 @@
 "use client";
-import React, { useState, ChangeEvent } from "react";
+import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import abi from "./utils/EthEcho.json";
 
 const Home: React.FC = () => {
   const [currentAccount, setCurrentAccount] = useState<string>("");
   const [echoValue, setEchoValue] = useState<string>("");
-  const [allEchoes, setAllEchoes] = useState([]);
   console.log("currentAccount: ", currentAccount);
   const contractAddress = "0x82F9e3A65eDb2b5C8f76655e3A872B4285169828";
   const contractABI = abi.abi;
+
+  // window.ethereumにアクセスできることを確認する
+  const checkIfWalletIsConnected = async () => {
+    try {
+      const { ethereum } = window as any;
+      if (!ethereum) {
+        console.log("Make sure you have MetaMask!");
+        return;
+      } else {
+        console.log("We have the ethereum object", ethereum);
+      }
+      // ユーザーのウォレットへのアクセスが許可されているかどうかを確認する
+      const accounts = await ethereum.request({ method: "eth_accounts" });
+      if (accounts.length !== 0) {
+        const account = accounts[0];
+        console.log("Found an authorized account:", account);
+        setCurrentAccount(account);
+      } else {
+        console.log("No authorized account found");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const connectWallet = async () => {
     try {
@@ -42,34 +65,33 @@ const Home: React.FC = () => {
         );
         let count = await EthEchoContract.getTotalEchoes();
         console.log("Retrieved total Echo count...", count.toNumber());
-        let contractBalance = await provider.getBalance(
+        console.log("Signer:", signer);
+        /* let contractBalance = await provider.getBalance(
           EthEchoContract.address as unknown as string
         );
-        console.log("Contract balance:", ethers.formatEther(contractBalance));
+        console.log("Contract balance:", ethers.formatEther(contractBalance));*/
         /* コントラクトにEchoを書き込む */
-        const EchoTxn = await EthEchoContract.Echo(echoValue, {
-          gasLimit: 300000,
-        });
+        const EchoTxn = await EthEchoContract.sendEcho();
         console.log("Mining...", EchoTxn.hash);
         await EchoTxn.wait();
         console.log("Mined -- ", EchoTxn.hash);
         count = await EthEchoContract.getTotalEchoes();
         console.log("Retrieved total Echo count...", count.toNumber());
-        let contractBalance_post = await provider.getBalance(
+        /*let contractBalance_post = await provider.getBalance(
           EthEchoContract.address as unknown as string
-        );
-        console.log("Contract balance:", ethers.formatEther(contractBalance));
+        ); */
+        /*console.log("Contract balance:", ethers.formatEther(contractBalance));
         /* コントラクトの残高が減っていることを確認 */
-        if (contractBalance_post < contractBalance) {
+        /* if (contractBalance_post < contractBalance) {
           /* 減っていたら下記を出力 */
-          console.log("User won ETH!");
-        } else {
+        /*console.log("User won ETH!");*/
+        /*} else {
           console.log("User didn't win ETH.");
         }
         console.log(
           "Contract balance after Echo:",
           ethers.formatEther(contractBalance_post)
-        );
+        );*/
       } else {
         console.log("Ethereum object doesn't exist!");
       }
@@ -77,6 +99,11 @@ const Home: React.FC = () => {
       console.log(error);
     }
   };
+
+  // WEBページがロードされたときに下記の関数を実行する
+  useEffect(() => {
+    checkIfWalletIsConnected();
+  }, []);
 
   return (
     <div>
