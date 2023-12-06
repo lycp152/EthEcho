@@ -8,7 +8,7 @@ const Home: React.FC = () => {
   const [echoValue, setEchoValue] = useState<string>("");
   const [allEchoes, setAllEchoes] = useState([]);
   console.log("currentAccount: ", currentAccount);
-  const contractAddress = "";
+  const contractAddress = "0x82F9e3A65eDb2b5C8f76655e3A872B4285169828";
   const contractABI = abi.abi;
 
   const connectWallet = async () => {
