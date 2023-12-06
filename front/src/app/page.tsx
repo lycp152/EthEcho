@@ -1,58 +1,32 @@
 "use client";
-import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import React, { useEffect, useState } from "react";
+
+/* ABIファイルを含むEthEcho.jsonファイルをインポートする*/
 import abi from "./utils/EthEcho.json";
 
 const Home: React.FC = () => {
+  /* ユーザーのパブリックウォレットを保存するために使用する状態変数を定義 */
   const [currentAccount, setCurrentAccount] = useState<string>("");
-  const [echoValue, setEchoValue] = useState<string>("");
-  console.log("currentAccount: ", currentAccount);
-  const contractAddress = "0xeA02f9dfb233416134D81227E681790BFe197b78";
-  const contractABI = abi.abi;
+  /* ユーザーのメッセージを保存するために使用する状態変数を定義 */
+  const [messageValue, setMessageValue] = useState<string>("");
+  /* すべてのechoesを保存する状態変数を定義 */
   const [allEchoes, setAllEchoes] = useState<
     { address: any; timestamp: Date; message: any }[]
   >([]);
 
-  const getAllEchoes = async () => {
-    const { ethereum } = window as any;
-
-    try {
-      if (ethereum) {
-        const provider = new ethers.BrowserProvider(ethereum);
-        const signer = provider.getSigner();
-        const EthEchoContract = new ethers.Contract(
-          contractAddress,
-          contractABI,
-          await signer
-        );
-        /* コントラクトからgetAllEchoesメソッドを呼び出す */
-        const echoes = await EthEchoContract.getAllEchoes();
-        /* UIに必要なのは、アドレス、タイムスタンプ、メッセージだけなので、以下のように設定 */
-        const echoesCleaned = echoes.map(
-          (sendEcho: { echoSender: any; timestamp: number; message: any }) => {
-            return {
-              address: sendEcho.echoSender,
-              timestamp: new Date(sendEcho.timestamp * 1000),
-              message: sendEcho.message,
-            };
-          }
-        );
-
-        /* React Stateにデータを格納する */
-        setAllEchoes(echoesCleaned);
-      } else {
-        console.log("Ethereum object doesn't exist!");
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  console.log("currentAccount: ", currentAccount);
+  /* デプロイされたコントラクトのアドレスを保持する変数を作成 */
+  const contractAddress = "0xeA02f9dfb233416134D81227E681790BFe197b78";
+  /* コントラクトからすべてのechoesを取得するメソッドを作成 */
+  /* ABIの内容を参照する変数を作成 */
+  const contractABI = abi.abi;
 
   /**
-   * `emit`されたイベントに反応する
+   * `emit`されたイベントをフロントエンドに反映させる
    */
   useEffect(() => {
-    let EthEchoContract: ethers.Contract;
+    let ethEchoContract: ethers.Contract;
 
     const onNewEcho = (from: any, timestamp: number, message: any) => {
       console.log("NewEcho", from, timestamp, message);
@@ -60,31 +34,30 @@ const Home: React.FC = () => {
         ...prevState,
         {
           address: from,
-          timestamp: new Date(timestamp * 1000),
+          timestamp: new Date(Number(timestamp) * 1000),
           message: message,
         },
       ]);
     };
 
     const setupContract = async () => {
-      /* NewEchoイベントがコントラクトから発信されたときに、情報を受け取ります */
+      /* NewWaveイベントがコントラクトから発信されたときに、情報をを受け取ります */
       if ((window as any).ethereum) {
         const provider = new ethers.BrowserProvider((window as any).ethereum);
         const signer = await provider.getSigner();
 
-        EthEchoContract = new ethers.Contract(
+        ethEchoContract = new ethers.Contract(
           contractAddress,
           contractABI,
           signer
         );
-        EthEchoContract.on("New", onNewEcho);
+        ethEchoContract.on("NewEcho", onNewEcho);
       }
     };
-
     const cleanupContract = () => {
       /*メモリリークを防ぐために、NewEchoのイベントを解除します*/
-      if (EthEchoContract) {
-        EthEchoContract.off("NewEcho", onNewEcho);
+      if (ethEchoContract) {
+        ethEchoContract.off("NewEcho", onNewEcho);
       }
     };
 
@@ -93,30 +66,7 @@ const Home: React.FC = () => {
     return cleanupContract;
   }, [contractABI]);
 
-  // window.ethereumにアクセスできることを確認する
-  const checkIfWalletIsConnected = async () => {
-    try {
-      const { ethereum } = window as any;
-      if (!ethereum) {
-        console.log("Make sure you have MetaMask!");
-        return;
-      } else {
-        console.log("We have the ethereum object", ethereum);
-      }
-      // ユーザーのウォレットへのアクセスが許可されているかどうかを確認する
-      const accounts = await ethereum.request({ method: "eth_accounts" });
-      if (accounts.length !== 0) {
-        const account = accounts[0];
-        console.log("Found an authorized account:", account);
-        setCurrentAccount(account);
-      } else {
-        console.log("No authorized account found");
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
+  /* connectWalletメソッドを実装 */
   const connectWallet = async () => {
     try {
       const { ethereum } = window as any;
@@ -134,6 +84,7 @@ const Home: React.FC = () => {
     }
   };
 
+  /* echoの回数をカウントする関数を実装 */
   const sendEcho = async () => {
     try {
       const { ethereum } = window as any;
@@ -141,40 +92,22 @@ const Home: React.FC = () => {
         const provider = new ethers.BrowserProvider(ethereum);
         const signer = provider.getSigner();
         /* ABIを参照 */
-        const EthEchoContract = new ethers.Contract(
+        const ethEchoContract = new ethers.Contract(
           contractAddress,
           contractABI,
           await signer
         );
-        let count = await EthEchoContract.getTotalEchoes();
-        console.log("Retrieved total Echo count...", count.toNumber());
-        console.log("Signer:", signer);
-        /* let contractBalance = await provider.getBalance(
-          EthEchoContract.address as unknown as string
-        );
-        console.log("Contract balance:", ethers.formatEther(contractBalance));*/
-        /* コントラクトにEchoを書き込む */
-        const EchoTxn = await EthEchoContract.sendEcho();
-        console.log("Mining...", EchoTxn.hash);
-        await EchoTxn.wait();
-        console.log("Mined -- ", EchoTxn.hash);
-        count = await EthEchoContract.getTotalEchoes();
-        console.log("Retrieved total Echo count...", count.toNumber());
-        /*let contractBalance_post = await provider.getBalance(
-          EthEchoContract.address as unknown as string
-        ); */
-        /*console.log("Contract balance:", ethers.formatEther(contractBalance));
-        /* コントラクトの残高が減っていることを確認 */
-        /* if (contractBalance_post < contractBalance) {
-          /* 減っていたら下記を出力 */
-        /*console.log("User won ETH!");*/
-        /*} else {
-          console.log("User didn't win ETH.");
-        }
-        console.log(
-          "Contract balance after Echo:",
-          ethers.formatEther(contractBalance_post)
-        );*/
+        let count = await ethEchoContract.getTotalEchoes();
+        console.log("Retrieved total echo count...", count.toNumber);
+        /* コントラクトに👋（echo）を書き込む */
+        const echoTxn = await ethEchoContract.sendEcho(messageValue, {
+          gasLimit: 300000,
+        });
+        console.log("Mining...", echoTxn.hash);
+        await echoTxn.wait();
+        console.log("Mined -- ", echoTxn.hash);
+        count = await ethEchoContract.getTotalEchoes();
+        console.log("Retrieved total echo count...", count.toNumber);
       } else {
         console.log("Ethereum object doesn't exist!");
       }
@@ -183,10 +116,71 @@ const Home: React.FC = () => {
     }
   };
 
-  // WEBページがロードされたときに下記の関数を実行する
+  /* WEBページがロードされたときにcheckIfWalletIsConnected()を実行 */
   useEffect(() => {
-    checkIfWalletIsConnected();
-  }, []);
+    /* window.ethereumにアクセスできることを確認する関数を実装 */
+    const checkIfWalletIsConnected = async () => {
+      try {
+        const { ethereum } = window as any;
+        if (!ethereum) {
+          console.log("Make sure you have MetaMask!");
+          return;
+        } else {
+          console.log("We have the ethereum object", ethereum);
+        }
+        // ユーザーのウォレットへのアクセスが許可されているかどうかを確認する
+        const accounts = await ethereum.request({ method: "eth_accounts" });
+        if (accounts.length !== 0) {
+          const account = accounts[0];
+          console.log("Found an authorized account:", account);
+          setCurrentAccount(account);
+          getAllEchoes();
+        } else {
+          console.log("No authorized account found");
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    const getAllEchoes = async () => {
+      const { ethereum } = window as any;
+
+      try {
+        if (ethereum) {
+          const provider = new ethers.BrowserProvider(ethereum);
+          const signer = provider.getSigner();
+          const ethEchoContract = new ethers.Contract(
+            contractAddress,
+            contractABI,
+            await signer
+          );
+          /* コントラクトからgetAllEchoesメソッドを呼び出す */
+          const echoes = await ethEchoContract.getAllEchoes();
+          /* UIに必要なのは、アドレス、タイムスタンプ、メッセージだけなので、以下のように設定 */
+          const echoesCleaned = echoes.map(
+            (sendEcho: {
+              echoSender: any;
+              timestamp: number;
+              message: any;
+            }) => {
+              return {
+                address: sendEcho.echoSender,
+                timestamp: new Date(sendEcho.timestamp * 1000),
+                message: sendEcho.message,
+              };
+            }
+          );
+          /* React Stateにデータを格納する */
+          setAllEchoes(echoesCleaned);
+        } else {
+          console.log("Ethereum object doesn't exist!");
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  }, [contractABI]);
 
   return (
     <div>
@@ -200,53 +194,71 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        <div className="sm:mx-auto sm:w-full sm:max-w-lg">
-          <form className="space-y-6" action="#" method="POST">
-            <div>
-              <div className="mt-8">
-                {/* Echoボックスを実装*/}
-                {currentAccount && (
-                  <textarea
-                    placeholder="メッセージはこちら"
-                    name="echoArea"
-                    id="echo"
-                    value={echoValue}
-                    onChange={(e) => setEchoValue(e.target.value)}
-                    className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
-                  />
-                )}
-              </div>
+        <div className="sm:mx-auto sm:w-full sm:max-w-lg space-y-6">
+          <div>
+            <div className="mt-8">
+              {/* Echoボックスを実装*/}
+              {currentAccount && (
+                <textarea
+                  placeholder="メッセージはこちら"
+                  name="echoArea"
+                  id="echo"
+                  value={messageValue}
+                  onChange={(e) => setMessageValue(e.target.value)}
+                  className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
+                />
+              )}
             </div>
+          </div>
 
-            {/* ウォレットコネクトのボタンを実装 */}
-            {!currentAccount && (
-              <button
-                onClick={connectWallet}
-                type="button"
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                Connect Wallet
-              </button>
-            )}
-            {currentAccount && (
-              <button
-                disabled={true}
-                title="Wallet Connected"
-                className="flex w-full justify-center rounded-md bg-indigo-900 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm cursor-not-allowed"
-              >
-                Wallet Connected
-              </button>
-            )}
-            {/* EchoボタンにsendEcho関数を連動 */}
-            {currentAccount && (
-              <button
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                onClick={sendEcho}
-              >
-                Echo🏔️
-              </button>
-            )}
-          </form>
+          {/* ウォレットコネクトのボタンを実装 */}
+          {!currentAccount && (
+            <button
+              onClick={connectWallet}
+              type="button"
+              className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              Connect Wallet
+            </button>
+          )}
+          {currentAccount && (
+            <button
+              disabled={true}
+              title="Wallet Connected"
+              className="flex w-full justify-center rounded-md bg-indigo-900 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm cursor-not-allowed"
+            >
+              Wallet Connected
+            </button>
+          )}
+          {/* EchoボタンにsendEcho関数を連動 */}
+          {currentAccount && (
+            <button
+              className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              onClick={sendEcho}
+            >
+              Echo🏔️
+            </button>
+          )}
+          {/* 履歴を表示する */}
+          {currentAccount &&
+            allEchoes
+              .slice(0)
+              .reverse()
+              .map((wave, index) => {
+                return (
+                  <div
+                    key={index}
+                    style={{
+                      marginTop: "16px",
+                      padding: "8px",
+                    }}
+                  >
+                    <div>Address: {wave.address}</div>
+                    <div>Time: {wave.timestamp.toString()}</div>
+                    <div>Message: {wave.message}</div>
+                  </div>
+                );
+              })}
         </div>
       </div>
     </div>
