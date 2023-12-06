@@ -2,8 +2,25 @@
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 
-/* ABIファイルを含むEthEcho.jsonファイルをインポートする*/
 import abi from "./utils/EthEcho.json";
+
+// イベントの詳細を表示するコンポーネント
+interface EventDetailsProps {
+  title: string;
+  value: string;
+}
+const EventDetails: React.FC<EventDetailsProps> = ({ title, value }) => (
+  <div className="py-3 px-4 block w-full border-gray-200 rounded-lg dark:bg-slate-900 dark:border-gray-700 dark:text-gray-100">
+    <div>
+      <p className="font-semibold">{title}</p>
+      <p>{value}</p>
+    </div>
+  </div>
+);
+
+// ボタンのスタイルをまとめた変数
+const buttonStyle =
+  "flex w-full justify-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
 
 const Home: React.FC = () => {
   /* ユーザーのパブリックウォレットを保存するために使用する状態変数を定義 */
@@ -41,20 +58,19 @@ const Home: React.FC = () => {
     };
 
     const setupContract = async () => {
-      if (currentAccount === "" || !currentAccount) return;
-      if ((window as any).ethereum) {
-        /* NewEchoイベントがコントラクトから発信されたときに、情報をを受け取ります */
-        const provider = new ethers.BrowserProvider((window as any).ethereum);
-        const signer = await provider.getSigner();
+      if (!currentAccount) return;
+      if (!(window as any).ethereum) return;
 
-        ethEchoContract = new ethers.Contract(
-          contractAddress,
-          contractABI,
-          signer
-        );
-        ethEchoContract.on("NewEcho", onNewEcho);
-      }
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      const signer = await provider.getSigner();
+
+      ethEchoContract =
+        ethEchoContract ||
+        new ethers.Contract(contractAddress, contractABI, signer);
+      //何をしているか説明できるようになる
+      ethEchoContract.on("NewEcho", onNewEcho);
     };
+
     const cleanupContract = () => {
       /*メモリリークを防ぐために、NewEchoのイベントを解除します*/
       if (ethEchoContract) {
@@ -78,6 +94,9 @@ const Home: React.FC = () => {
       const accounts = await ethereum.request({
         method: "eth_requestAccounts",
       });
+      if (!accounts || accounts.length === 0) {
+        return;
+      }
       console.log("Connected: ", accounts[0]);
       setCurrentAccount(accounts[0]);
     } catch (error) {
@@ -86,7 +105,7 @@ const Home: React.FC = () => {
   };
 
   /* echoの回数をカウントする関数を実装 */
-  const sendEcho = async () => {
+  const writeEcho = async () => {
     try {
       const { ethereum } = window as any;
       if (ethereum) {
@@ -101,7 +120,7 @@ const Home: React.FC = () => {
         let count = await ethEchoContract.getTotalEchoes();
         console.log("Retrieved total echo count...", count.toNumber);
         /* コントラクトにEchoを書き込む */
-        const echoTxn = await ethEchoContract.sendEcho(messageValue, {
+        const echoTxn = await ethEchoContract.writeEcho(messageValue, {
           gasLimit: 300000,
         });
         console.log("Mining...", echoTxn.hash);
@@ -151,7 +170,7 @@ const Home: React.FC = () => {
             <button
               onClick={connectWallet}
               type="button"
-              className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              className={`${buttonStyle} bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600`}
             >
               Connect Wallet
             </button>
@@ -160,16 +179,16 @@ const Home: React.FC = () => {
             <button
               disabled={true}
               title="Wallet Connected"
-              className="flex w-full justify-center rounded-md bg-indigo-900 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm cursor-not-allowed"
+              className={`${buttonStyle} bg-indigo-900 text-white cursor-not-allowed`}
             >
               Wallet Connected
             </button>
           )}
-          {/* EchoボタンにsendEcho関数を連動 */}
+          {/* EchoボタンにwriteEcho関数を連動 */}
           {currentAccount && (
             <button
-              className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              onClick={sendEcho}
+              className={`${buttonStyle} bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600`}
+              onClick={writeEcho}
             >
               Echo🏔️
             </button>
@@ -179,17 +198,19 @@ const Home: React.FC = () => {
             allEchoes
               .slice(0)
               .reverse()
-              .map((sendEcho, index) => (
+              .map((writeEcho, index) => (
                 <div
                   key={index}
                   className=" py-3 px-4 block w-full border-gray-200 rounded-lg dark:bg-slate-900 dark:border-gray-700 dark:text-gray-100"
                 >
-                  <div className="font-semibold">Address</div>
-                  {sendEcho.address}
-                  <div className="font-semibold">Time🦴🐕💨 </div>
-                  {sendEcho.timestamp.toString()}
-                  <div className="font-semibold">Message </div>
-                  {sendEcho.message}
+                  <React.Fragment key={index}>
+                    <EventDetails title="Address" value={writeEcho.address} />
+                    <EventDetails
+                      title="Time🦴🐕💨"
+                      value={writeEcho.timestamp.toString()}
+                    />
+                    <EventDetails title="Message" value={writeEcho.message} />
+                  </React.Fragment>
                 </div>
               ))}
         </div>

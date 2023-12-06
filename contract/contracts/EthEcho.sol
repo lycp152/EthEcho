@@ -36,7 +36,7 @@ contract EthEcho {
     * _messageという文字列を要求するようにecho関数を更新。
     * _messageは、ユーザーがフロントエンドから送信するメッセージです。
     */
-    function sendEcho(string memory _message) public {
+    function writeEcho(string memory _message) public {
         _totalEchoes += 1;
         console.log("%s echoed w/ message %s", msg.sender, _message);
 

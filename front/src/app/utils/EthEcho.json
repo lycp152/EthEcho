@@ -84,7 +84,7 @@
           "type": "string"
         }
       ],
-      "name": "sendEcho",
+      "name": "writeEcho",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

@@ -15,13 +15,13 @@ const altmain = async () => {
   /**
    * Echoを送る
    */
-  let echoTxn = await echoContract.sendEcho("A message!");
+  let echoTxn = await echoContract.writeEcho("A message!");
   await echoTxn.wait(); // トランザクションが承認されるのを待つ（テスト:1回目）
 
   const [_, randomPerson] = await hre.ethers.getSigners();
   echoTxn = await echoContract
     .connect(randomPerson)
-    .sendEcho("Another message!");
+    .writeEcho("Another message!");
   await echoTxn.wait(); // トランザクションが承認されるのを待つ（テスト:2回目）
 
   let allEchoes = await echoContract.getAllEchoes();
