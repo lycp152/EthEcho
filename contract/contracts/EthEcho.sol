@@ -13,54 +13,51 @@ contract EthEcho {
     event NewEcho(address indexed from, uint256 timestamp, string message);
 
     /*
-    * Echoという構造体を作成。
-    * 構造体の中身は、カスタマイズすることができます。
-    */
+     * ユーザーが送信したEchoの情報
+     */
     struct Echo {
         address echoSender; // を送ったユーザーのアドレス
         string message; // ユーザーが送ったメッセージ
         uint256 timestamp; // ユーザーがEchoを送った瞬間のタイムスタンプ
-
     }
+
     /*
-    * 構造体の配列を格納するための変数echoesを宣言。
-    * これで、ユーザーが送ってきたすべてのEchoを保持することができます。
-    */
-    Echo[] private _echoes;
+     * ユーザーが送ってきた最新のEchoを保持する
+     */
+    Echo private _latestEcho;
 
     constructor() {
         console.log("EthEcho - Smart Contract!");
     }
 
     /*
-    * _messageという文字列を要求するようにecho関数を更新。
-    * _messageは、ユーザーがフロントエンドから送信するメッセージです。
-    */
+     * _messageという文字列を要求する
+     * _messageは、ユーザーがフロントエンドから送信するメッセージ
+     */
     function writeEcho(string memory _message) public {
         _totalEchoes += 1;
         console.log("%s echoed w/ message %s", msg.sender, _message);
 
         /*
-         * Echoとメッセージを配列に格納。
+         * Echoとメッセージを配列に格納する
          */
-        _echoes.push(Echo(msg.sender, _message, block.timestamp));
+        _latestEcho = Echo(msg.sender, _message, block.timestamp);
 
         /*
-         * コントラクト側でemitされたイベントに関する通知をフロントエンドで取得できるようにする。
+         * コントラクト側でemitされたイベントに関する通知をフロントエンドで取得する
          */
         emit NewEcho(msg.sender, block.timestamp, _message);
     }
 
     /*
-     * 構造体配列のechoesを返してくれるgetlatestEchoという関数を追加。
-     * これで、私たちのWEBアプリからechoesを取得することができます。
+     * 最新のEchoを返す
      */
-    function getlatestEcho() public view returns (Echo[] memory) {
-        return _echoes;
+    function getLatestEcho() public view returns (Echo memory) {
+        return _latestEcho;
     }
 
     function getTotalEchoes() public view returns (uint256) {
-        // コントラクトが出力する値をコンソールログで表示する。
+        // コントラクトが出力する値をコンソールログで表示
         console.log("We have %d total echoes!", _totalEchoes);
         return _totalEchoes;
     }

@@ -37,7 +37,7 @@ const Home: React.FC = () => {
 
   console.log("currentAccount: ", currentAccount);
   /* デプロイされたコントラクトのアドレスを保持する変数 */
-  const contractAddress = "0xDeF771f2Fec89ed0Ca6343720B9B31038aD2C4d0";
+  const contractAddress = "0x97c61078D81eAA18E779C3d1F5eAfdA9e027e491";
   /* ABIの内容を参照する変数 */
   const contractABI = abi.abi;
 
