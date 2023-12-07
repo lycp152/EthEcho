@@ -192,26 +192,26 @@ const Home: React.FC = () => {
               Echo🏔️
             </button>
           )}
-          {/* Load Recent Echo ボタンに関数を連動 */}
+          {/* Load Latest Echo ボタンに関数を連動 */}
           {currentAccount && (
             <button
               className={`${buttonStyle} bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600 mt-6`}
-              //onClick={loadRecentEcho}
+              //onClick={loadLatestEcho}
             >
-              Load Recent Echo🏔️
+              Load Latest Echo🏔️
             </button>
           )}
           {/* 履歴を表示する */}
           {currentAccount && latestEcho && (
             <div className="py-3 px-4 block w-full border-gray-200 rounded-lg dark:bg-slate-900 dark:border-gray-700 dark:text-gray-100">
-              <React.Fragment>
+              <div>
                 <EventDetails title="Address" value={latestEcho.address} />
                 <EventDetails
                   title="Time🦴🐕💨"
                   value={latestEcho.timestamp.toString()}
                 />
                 <EventDetails title="Message" value={latestEcho.message} />
-              </React.Fragment>
+              </div>
             </div>
           )}
         </div>
