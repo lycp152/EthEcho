@@ -52,10 +52,10 @@ contract EthEcho {
     }
 
     /*
-     * 構造体配列のechoesを返してくれるgetAllEchoesという関数を追加。
+     * 構造体配列のechoesを返してくれるgetlatestEchoという関数を追加。
      * これで、私たちのWEBアプリからechoesを取得することができます。
      */
-    function getAllEchoes() public view returns (Echo[] memory) {
+    function getlatestEcho() public view returns (Echo[] memory) {
         return _echoes;
     }
 

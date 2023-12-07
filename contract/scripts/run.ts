@@ -24,8 +24,8 @@ const altmain = async () => {
     .writeEcho("Another message!");
   await echoTxn.wait(); // トランザクションが承認されるのを待つ（テスト:2回目）
 
-  let allEchoes = await echoContract.getAllEchoes();
-  console.log(allEchoes);
+  let latestEcho = await echoContract.getlatestEcho();
+  console.log(latestEcho);
 };
 
 const altrunMain = async () => {
