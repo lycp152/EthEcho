@@ -28,14 +28,16 @@ const Home: React.FC = () => {
   const [currentAccount, setCurrentAccount] = useState<string>("");
   /* ユーザーのメッセージを保存するために使用する状態変数 */
   const [messageValue, setMessageValue] = useState<string>("");
-  /* すべてのechoesを保存する状態変数 */
-  const [allEchoes, setAllEchoes] = useState<
-    { address: any; timestamp: Date; message: any }[]
-  >([]);
+  /* 最新のEchoを保存する状態変数 */
+  const [latestEcho, setLatestEcho] = useState<{
+    address: any;
+    timestamp: Date;
+    message: any;
+  } | null>(null);
 
   console.log("currentAccount: ", currentAccount);
   /* デプロイされたコントラクトのアドレスを保持する変数 */
-  const contractAddress = "0x483f03946Df3e9170e1De8216b9B181E4B65BfD2";
+  const contractAddress = "0x97c61078D81eAA18E779C3d1F5eAfdA9e027e491";
   /* ABIの内容を参照する変数 */
   const contractABI = abi.abi;
 
@@ -47,14 +49,11 @@ const Home: React.FC = () => {
 
     const onNewEcho = (from: any, timestamp: number, message: any) => {
       console.log("NewEcho", from, timestamp, message);
-      setAllEchoes((prevState) => [
-        ...prevState,
-        {
-          address: from,
-          timestamp: new Date(Number(timestamp) * 1000),
-          message: message,
-        },
-      ]);
+      setLatestEcho({
+        address: from,
+        timestamp: new Date(Number(timestamp) * 1000),
+        message: message,
+      });
     };
 
     const setupContract = async () => {
@@ -193,35 +192,28 @@ const Home: React.FC = () => {
               Echo🏔️
             </button>
           )}
-          {/* Load Recent Echo ボタンに関数を連動 */}
+          {/* Load Latest Echo ボタンに関数を連動 */}
           {currentAccount && (
             <button
               className={`${buttonStyle} bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600 mt-6`}
-              //onClick={loadRecentEcho}
+              //onClick={loadLatestEcho}
             >
-              Load Recent Echo🏔️
+              Load Latest Echo🏔️
             </button>
           )}
           {/* 履歴を表示する */}
-          {currentAccount &&
-            allEchoes
-              .slice(0)
-              .reverse()
-              .map((writeEcho, index) => (
-                <div
-                  key={index}
-                  className="py-3 px-4 block w-full border-gray-200 rounded-lg dark:bg-slate-900 dark:border-gray-700 dark:text-gray-100"
-                >
-                  <React.Fragment key={index}>
-                    <EventDetails title="Address" value={writeEcho.address} />
-                    <EventDetails
-                      title="Time🦴🐕💨"
-                      value={writeEcho.timestamp.toString()}
-                    />
-                    <EventDetails title="Message" value={writeEcho.message} />
-                  </React.Fragment>
-                </div>
-              ))}
+          {currentAccount && latestEcho && (
+            <div className="py-3 px-4 block w-full border-gray-200 rounded-lg dark:bg-slate-900 dark:border-gray-700 dark:text-gray-100">
+              <div>
+                <EventDetails title="Address" value={latestEcho.address} />
+                <EventDetails
+                  title="Time🦴🐕💨"
+                  value={latestEcho.timestamp.toString()}
+                />
+                <EventDetails title="Message" value={latestEcho.message} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
