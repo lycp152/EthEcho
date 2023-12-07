@@ -34,6 +34,12 @@ const Home: React.FC = () => {
     timestamp: Date;
     message: any;
   } | null>(null);
+  /* 表示されているEchoを保存する状態変数 */
+  const [displayedEcho, setDisplayedEcho] = useState<{
+    address: any;
+    timestamp: Date;
+    message: any;
+  } | null>(null);
 
   console.log("currentAccount: ", currentAccount);
   /* デプロイされたコントラクトのアドレスを保持する変数 */
@@ -42,7 +48,7 @@ const Home: React.FC = () => {
   const contractABI = abi.abi;
 
   /**
-   * `emit`されたイベントをフロントエンドに反映させる
+   * `emit`されたイベントをフロントエンドに反映する
    */
   useEffect(() => {
     let ethEchoContract: ethers.Contract;
@@ -138,6 +144,7 @@ const Home: React.FC = () => {
   return (
     <div>
       <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
+        {/* ヘッダー */}
         <div className="sm:mx-auto sm:w-full sm:max-w-lg">
           <h1 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white-900">
             EthEcho🏔️
@@ -150,7 +157,7 @@ const Home: React.FC = () => {
         <div className="sm:mx-auto sm:w-full sm:max-w-lg space-y-6">
           <div>
             <div className="mt-8">
-              {/* メッセージボックスを実装 */}
+              {/* メッセージボックス */}
               {currentAccount && (
                 <textarea
                   placeholder="メッセージはこちら"
@@ -164,7 +171,7 @@ const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* ウォレットコネクトのボタンを実装 */}
+          {/* ウォレットを接続するボタン */}
           {!currentAccount && (
             <button
               onClick={connectWallet}
@@ -183,7 +190,7 @@ const Home: React.FC = () => {
               Wallet Connected
             </button>
           )}
-          {/* EchoボタンにwriteEcho関数を連動 */}
+          {/* コントラクトに書き込むボタン */}
           {currentAccount && (
             <button
               className={`${buttonStyle} bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600`}
@@ -192,25 +199,25 @@ const Home: React.FC = () => {
               Echo🏔️
             </button>
           )}
-          {/* Load Latest Echo ボタンに関数を連動 */}
+          {/* 最新の書き込みを読み込むボタン */}
           {currentAccount && (
             <button
               className={`${buttonStyle} bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600 mt-6`}
-              //onClick={loadLatestEcho}
+              onClick={() => setDisplayedEcho(latestEcho)}
             >
               Load Latest Echo🏔️
             </button>
           )}
           {/* 履歴を表示する */}
-          {currentAccount && latestEcho && (
+          {currentAccount && displayedEcho && (
             <div className="py-3 px-4 block w-full border-gray-200 rounded-lg dark:bg-slate-900 dark:border-gray-700 dark:text-gray-100">
               <div>
-                <EventDetails title="Address" value={latestEcho.address} />
+                <EventDetails title="Address" value={displayedEcho.address} />
                 <EventDetails
                   title="Time🦴🐕💨"
-                  value={latestEcho.timestamp.toString()}
+                  value={displayedEcho.timestamp.toString()}
                 />
-                <EventDetails title="Message" value={latestEcho.message} />
+                <EventDetails title="Message" value={displayedEcho.message} />
               </div>
             </div>
           )}
