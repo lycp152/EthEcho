@@ -5,21 +5,38 @@ import React, { useEffect, useState } from "react";
 /* ABIファイルを含むEthEcho.jsonファイルをインポートする*/
 import abi from "./utils/EthEcho.json";
 
+/* イベントの詳細を表示するコンポーネント */
+interface EventDetailsProps {
+  title: string;
+  value: string;
+}
+const EventDetails: React.FC<EventDetailsProps> = ({ title, value }) => (
+  <div className="py-3 px-4 block w-full border-gray-200 rounded-lg dark:bg-slate-900 dark:border-gray-700 dark:text-gray-100">
+    <div>
+      <p className="font-semibold">{title}</p>
+      <p>{value}</p>
+    </div>
+  </div>
+);
+
+/* ボタンのスタイルをまとめた変数 */
+const buttonStyle =
+  "flex w-full justify-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+
 const Home: React.FC = () => {
-  /* ユーザーのパブリックウォレットを保存するために使用する状態変数を定義 */
+  /* ユーザーのパブリックウォレットを保存するために使用する状態変数*/
   const [currentAccount, setCurrentAccount] = useState<string>("");
-  /* ユーザーのメッセージを保存するために使用する状態変数を定義 */
+  /* ユーザーのメッセージを保存するために使用する状態変数 */
   const [messageValue, setMessageValue] = useState<string>("");
-  /* すべてのechoesを保存する状態変数を定義 */
+  /* すべてのechoesを保存する状態変数 */
   const [allEchoes, setAllEchoes] = useState<
     { address: any; timestamp: Date; message: any }[]
   >([]);
 
   console.log("currentAccount: ", currentAccount);
-  /* デプロイされたコントラクトのアドレスを保持する変数を作成 */
-  const contractAddress = "0xf0582a0aACDD920CF0861f0fF520B0230bCc20AC";
-  /* コントラクトからすべてのechoesを取得するメソッドを作成 */
-  /* ABIの内容を参照する変数を作成 */
+  /* デプロイされたコントラクトのアドレスを保持する変数 */
+  const contractAddress = "0x483f03946Df3e9170e1De8216b9B181E4B65BfD2";
+  /* ABIの内容を参照する変数 */
   const contractABI = abi.abi;
 
   /**
@@ -43,7 +60,7 @@ const Home: React.FC = () => {
     const setupContract = async () => {
       if (currentAccount === "" || !currentAccount) return;
       if ((window as any).ethereum) {
-        /* NewEchoイベントがコントラクトから発信されたときに、情報をを受け取ります */
+        /* NewEchoイベントがコントラクトから発信されたときに、情報をを受け取る */
         const provider = new ethers.BrowserProvider((window as any).ethereum);
         const signer = await provider.getSigner();
 
@@ -52,11 +69,13 @@ const Home: React.FC = () => {
           contractABI,
           signer
         );
+        /* イベントリスナーの設定
+        何をしているか説明できるようにする */
         ethEchoContract.on("NewEcho", onNewEcho);
       }
     };
     const cleanupContract = () => {
-      /*メモリリークを防ぐために、NewEchoのイベントを解除します*/
+      /*メモリリークを防ぐために、NewEchoのイベントを解除する*/
       if (ethEchoContract) {
         ethEchoContract.off("NewEcho", onNewEcho);
       }
@@ -67,7 +86,7 @@ const Home: React.FC = () => {
     return cleanupContract;
   }, [contractABI, currentAccount]);
 
-  /* connectWalletメソッドを実装 */
+  /* ウォレットに接続する */
   const connectWallet = async () => {
     try {
       const { ethereum } = window as any;
@@ -85,8 +104,8 @@ const Home: React.FC = () => {
     }
   };
 
-  /* echoの回数をカウントする関数を実装 */
-  const sendEcho = async () => {
+  /* コントラクトに書き込む */
+  const writeEcho = async () => {
     try {
       const { ethereum } = window as any;
       if (ethereum) {
@@ -101,7 +120,7 @@ const Home: React.FC = () => {
         let count = await ethEchoContract.getTotalEchoes();
         console.log("Retrieved total echo count...", count.toNumber);
         /* コントラクトにEchoを書き込む */
-        const echoTxn = await ethEchoContract.sendEcho(messageValue, {
+        const echoTxn = await ethEchoContract.writeEcho(messageValue, {
           gasLimit: 300000,
         });
         console.log("Mining...", echoTxn.hash);
@@ -151,7 +170,7 @@ const Home: React.FC = () => {
             <button
               onClick={connectWallet}
               type="button"
-              className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              className={`${buttonStyle} bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600`}
             >
               Connect Wallet
             </button>
@@ -160,18 +179,27 @@ const Home: React.FC = () => {
             <button
               disabled={true}
               title="Wallet Connected"
-              className="flex w-full justify-center rounded-md bg-indigo-900 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm cursor-not-allowed"
+              className={`${buttonStyle} bg-indigo-900 text-white cursor-not-allowed`}
             >
               Wallet Connected
             </button>
           )}
-          {/* EchoボタンにsendEcho関数を連動 */}
+          {/* EchoボタンにwriteEcho関数を連動 */}
           {currentAccount && (
             <button
-              className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              onClick={sendEcho}
+              className={`${buttonStyle} bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600`}
+              onClick={writeEcho}
             >
               Echo🏔️
+            </button>
+          )}
+          {/* Load Recent Echo ボタンに関数を連動 */}
+          {currentAccount && (
+            <button
+              className={`${buttonStyle} bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600 mt-6`}
+              //onClick={loadRecentEcho}
+            >
+              Load Recent Echo🏔️
             </button>
           )}
           {/* 履歴を表示する */}
@@ -179,17 +207,19 @@ const Home: React.FC = () => {
             allEchoes
               .slice(0)
               .reverse()
-              .map((sendEcho, index) => (
+              .map((writeEcho, index) => (
                 <div
                   key={index}
-                  className=" py-3 px-4 block w-full border-gray-200 rounded-lg dark:bg-slate-900 dark:border-gray-700 dark:text-gray-100"
+                  className="py-3 px-4 block w-full border-gray-200 rounded-lg dark:bg-slate-900 dark:border-gray-700 dark:text-gray-100"
                 >
-                  <div className="font-semibold">Address</div>
-                  {sendEcho.address}
-                  <div className="font-semibold">Time🦴🐕💨 </div>
-                  {sendEcho.timestamp.toString()}
-                  <div className="font-semibold">Message </div>
-                  {sendEcho.message}
+                  <React.Fragment key={index}>
+                    <EventDetails title="Address" value={writeEcho.address} />
+                    <EventDetails
+                      title="Time🦴🐕💨"
+                      value={writeEcho.timestamp.toString()}
+                    />
+                    <EventDetails title="Message" value={writeEcho.message} />
+                  </React.Fragment>
                 </div>
               ))}
         </div>

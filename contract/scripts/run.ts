@@ -1,7 +1,7 @@
-//deploy.tsと重複箇所は関数の頭にaltがついている、使用前に削除すること
+// deploy.tsと重複箇所は関数の頭にaltがついている、使用前に削除すること
+// 重複のためコメントアウト
+// const hre = require("hardhat");
 
-//重複のためコメントアウト
-//const hre = require("hardhat");
 const altmain = async () => {
   const echoContractFactory = await hre.ethers.getContractFactory("EthEcho");
   const echoContract = await echoContractFactory.deploy();
@@ -15,13 +15,13 @@ const altmain = async () => {
   /**
    * Echoを送る
    */
-  let echoTxn = await echoContract.sendEcho("A message!");
+  let echoTxn = await echoContract.writeEcho("A message!");
   await echoTxn.wait(); // トランザクションが承認されるのを待つ（テスト:1回目）
 
   const [_, randomPerson] = await hre.ethers.getSigners();
   echoTxn = await echoContract
     .connect(randomPerson)
-    .sendEcho("Another message!");
+    .writeEcho("Another message!");
   await echoTxn.wait(); // トランザクションが承認されるのを待つ（テスト:2回目）
 
   let allEchoes = await echoContract.getAllEchoes();
