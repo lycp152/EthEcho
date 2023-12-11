@@ -5,6 +5,10 @@ import React, { useEffect, useState } from "react";
 /* ABIファイルを含むEthEcho.jsonファイルをインポートする*/
 import abi from "./utils/EthEcho.json";
 
+/* ボタンのスタイルをまとめた変数 */
+const buttonStyle =
+  "flex w-full justify-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+
 /* イベントの詳細を表示するコンポーネント */
 interface EventDetailsProps {
   title: string;
@@ -19,11 +23,7 @@ const EventDetails: React.FC<EventDetailsProps> = ({ title, value }) => (
   </div>
 );
 
-/* ボタンのスタイルをまとめた変数 */
-const buttonStyle =
-  "flex w-full justify-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
-
-const Home: React.FC = () => {
+export default function Home() {
   /* ユーザーのパブリックウォレットを保存するために使用する状態変数*/
   const [currentAccount, setCurrentAccount] = useState<string>("");
   /* ユーザーのメッセージを保存するために使用する状態変数 */
@@ -142,34 +142,30 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div>
+    <main>
       <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
         {/* ヘッダー */}
         <div className="sm:mx-auto sm:w-full sm:max-w-lg">
           <h1 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white-900">
             EthEcho🏔️
           </h1>
-          <div className="bio mt-2">
+          <div className="bio mt-2 mb-8">
             イーサリアムウォレットを接続して、メッセージを作成。あなたのメッセージをチェーンに響かせましょう！
           </div>
         </div>
 
         <div className="sm:mx-auto sm:w-full sm:max-w-lg space-y-6">
-          <div>
-            <div className="mt-8">
-              {/* メッセージボックス */}
-              {currentAccount && (
-                <textarea
-                  placeholder="メッセージはこちら"
-                  name="messageArea"
-                  id="message"
-                  value={messageValue}
-                  onChange={(e) => setMessageValue(e.target.value)}
-                  className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
-                />
-              )}
-            </div>
-          </div>
+          {/* メッセージボックス */}
+          {currentAccount && (
+            <textarea
+              placeholder="メッセージはこちら"
+              name="messageArea"
+              id="message"
+              value={messageValue}
+              onChange={(e) => setMessageValue(e.target.value)}
+              className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
+            />
+          )}
 
           {/* ウォレットを接続するボタン */}
           {!currentAccount && (
@@ -223,8 +219,6 @@ const Home: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
-};
-
-export default Home;
+}
