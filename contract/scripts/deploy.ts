@@ -1,19 +1,16 @@
-const { ethers } = require("ethers");
-const hre = require("hardhat");
-
+import { ethers } from "hardhat";
 const main = async () => {
-  const [deployer] = await hre.ethers.getSigners();
-  const deployerAddress = await deployer.getAddress();
+  const [deployer] = await ethers.getSigners();
   const accountBalance = await deployer.provider.getBalance(deployer.address);
-  const echoContractFactory = await hre.ethers.getContractFactory("EthEcho");
+  const echoContractFactory = await ethers.getContractFactory("EthEcho");
   const echoContract = await echoContractFactory.deploy();
-  const echoPortal = await echoContract.waitForDeployment();
+  const ethEcho = await echoContract.waitForDeployment();
 
-  console.log("Deploying contracts with account: ", deployerAddress);
-  console.log("Account balance: ", accountBalance.toString());
-  const echoPortalAddress = await echoPortal.getAddress();
-  console.log("Contract deployed to: ", echoPortalAddress);
-  console.log("Contract deployed by: ", deployerAddress);
+  console.log("Deploying contracts with account:", deployer.address);
+  console.log("Account balance:", accountBalance.toString());
+  const deployedContractAddress = await ethEcho.getAddress();
+  console.log("Contract deployed to:", deployedContractAddress);
+  console.log("Contract deployed by:", deployer.address);
 };
 
 const runMain = async () => {
