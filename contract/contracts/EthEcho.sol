@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.19;
 
 import "hardhat/console.sol";
@@ -6,7 +7,6 @@ import "hardhat/console.sol";
 contract EthEcho {
 
     uint256 private _totalEchoes;
-
     /*
     * NewEchoイベントの作成
     */
@@ -16,7 +16,7 @@ contract EthEcho {
      * ユーザーが送信したEchoの情報
      */
     struct Echo {
-        address echoSender; // を送ったユーザーのアドレス
+        address echoer; // Echoを送ったユーザーのアドレス
         string message; // ユーザーが送ったメッセージ
         uint256 timestamp; // ユーザーがEchoを送った瞬間のタイムスタンプ
     }
@@ -39,7 +39,7 @@ contract EthEcho {
         console.log("%s echoed w/ message %s", msg.sender, _message);
 
         /*
-         * Echoとメッセージを配列に格納する
+         * Echoとメッセージを格納する
          */
         _latestEcho = Echo(msg.sender, _message, block.timestamp);
 
@@ -49,15 +49,11 @@ contract EthEcho {
         emit NewEcho(msg.sender, block.timestamp, _message);
     }
 
-    /*
-     * 最新のEchoを返す
-     */
     function getLatestEcho() public view returns (Echo memory) {
         return _latestEcho;
     }
 
     function getTotalEchoes() public view returns (uint256) {
-        // コントラクトが出力する値をコンソールログで表示
         console.log("We have %d total echoes!", _totalEchoes);
         return _totalEchoes;
     }
